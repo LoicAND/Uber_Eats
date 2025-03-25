@@ -76,6 +76,7 @@ public class Commande {
                 return false;
         }
     }
+
     public StatutCommande getStatut() {
         return statut;
     }
