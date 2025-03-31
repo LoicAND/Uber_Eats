@@ -1,71 +1,71 @@
 package fr.ynov.ubereats.domain.restaurant;
 
-import fr.ynov.ubereats.domain.commande.Commande;
+import fr.ynov.ubereats.domain.order.Order;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Restaurant {
     private String id;
-    private String nom;
-    private String adresse;
-    private List<Plat> menu;
-    private boolean ouvert;
+    private String name;
+    private String address;
+    private List<Dish> menu;
+    private boolean isOpen;
 
-    public Restaurant(String id, String nom, String adresse) {
+    public Restaurant(String id, String name, String address) {
         this.id = id;
-        this.nom = nom;
-        this.adresse = adresse;
+        this.name = name;
+        this.address = address;
         this.menu = new ArrayList<>();
-        this.ouvert = false;
+        this.isOpen = false;
     }
 
-    public void ajouterPlat(Plat plat) {
-        if (!menu.contains(plat)) {
-            menu.add(plat);
+    public void addDish(Dish dish) {
+        if (!menu.contains(dish)) {
+            menu.add(dish);
         }
     }
 
-    public void supprimerPlat(Plat plat) {
-        menu.remove(plat);
+    public void removeDish(Dish dish) {
+        menu.remove(dish);
     }
 
-    public void modifierInformations(String nom, String adresse) {
-        this.nom = nom;
-        this.adresse = adresse;
+    public void updateInformation(String name, String address) {
+        this.name = name;
+        this.address = address;
     }
 
-    public boolean accepterCommande(Commande commande) {
+    public boolean acceptOrder(Order order) {
         return true;
     }
 
-    public boolean refuserCommande(Commande commande) {
+    public boolean rejectOrder(Order order) {
         return true;
     }
 
-    public void signalerProbleme(String description){}
+    public void reportProblem(String description){}
 
     public String getId() {
         return id;
     }
 
-    public String getNom() {
-        return nom;
+    public String getName() {
+        return name;
     }
 
-    public String getAdresse() {
-        return adresse;
+    public String getAddress() {
+        return address;
     }
 
-    public List<Plat> getMenu() {
+    public List<Dish> getMenu() {
         return new ArrayList<>(menu);
     }
 
-    public boolean isOuvert() {
-        return ouvert;
+    public boolean isOpen() {
+        return isOpen;
     }
 
-    public void setOuvert(boolean ouvert) {
-        this.ouvert = ouvert;
+    public void setOpen(boolean isOpen) {
+        this.isOpen = isOpen;
     }
 }
