@@ -1,17 +1,20 @@
 package fr.ynov.ubereats.gui;
 
 import fr.ynov.ubereats.domain.order.Order;
+import fr.ynov.ubereats.domain.payment.Payment;
 import fr.ynov.ubereats.domain.restaurant.Restaurant;
 import fr.ynov.ubereats.domain.user.Customers;
 import fr.ynov.ubereats.service.OrderService;
 import fr.ynov.ubereats.service.PaymentService;
 import fr.ynov.ubereats.service.RestaurantService;
 import fr.ynov.ubereats.service.UserService;
-import fr.ynov.ubereats.configuration.Configuration;
-
+import fr.ynov.ubereats.domain.order.OrderStatus;
+import fr.ynov.ubereats.domain.payment.PaymentMethod;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.Vector;
 import java.util.List;
 
@@ -21,7 +24,6 @@ public class GraphicalInterface extends JFrame {
     private OrderService orderService;
     private PaymentService paymentService;
 
-    // UI Components
     private JTabbedPane mainTabbedPane;
     private JPanel restaurantsPanel;
     private JPanel ordersPanel;
@@ -33,46 +35,37 @@ public class GraphicalInterface extends JFrame {
         this.orderService = orderService;
         this.paymentService = paymentService;
 
-        // Set up the main frame
         setTitle("UberEats Clone");
         setSize(600, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        // Create main tabbed pane
         mainTabbedPane = new JTabbedPane();
 
-        // Create tabs
         restaurantsPanel = createRestaurantsPanel();
         ordersPanel = createOrdersPanel();
         connectionPanel = createConnectionPanel();
 
-        // Add tabs to tabbed pane
         mainTabbedPane.addTab("Restaurants", restaurantsPanel);
         mainTabbedPane.addTab("My Orders", ordersPanel);
         mainTabbedPane.addTab("Connection", connectionPanel);
 
-        // Set the tabbed pane as the content pane
         setContentPane(mainTabbedPane);
     }
 
     private JPanel createRestaurantsPanel() {
         JPanel panel = new JPanel(new BorderLayout());
 
-        // Restaurant list
         DefaultListModel<String> restaurantListModel = new DefaultListModel<>();
         JList<String> restaurantList = new JList<>(restaurantListModel);
 
-        // Populate restaurant list
         List<Restaurant> restaurants = restaurantService.listRestaurants();
         restaurants.forEach(restaurant ->
                 restaurantListModel.addElement(restaurant.getName() + " - " + restaurant.getAddress())
         );
 
-        // Scroll pane for restaurant list
         JScrollPane listScrollPane = new JScrollPane(restaurantList);
         panel.add(listScrollPane, BorderLayout.CENTER);
 
-        // Order button
         JButton orderButton = new JButton("Order");
         orderButton.addActionListener(e -> {
             if (!(userService.getConnectedUser() instanceof Customers)) {
@@ -95,16 +88,13 @@ public class GraphicalInterface extends JFrame {
     private JPanel createOrdersPanel() {
         JPanel panel = new JPanel(new BorderLayout());
 
-        // Orders table model
         String[] columnNames = {"Order ID", "Restaurant", "Status"};
         DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
         JTable ordersTable = new JTable(tableModel);
 
-        // Scroll pane for orders table
         JScrollPane tableScrollPane = new JScrollPane(ordersTable);
         panel.add(tableScrollPane, BorderLayout.CENTER);
 
-        // Buttons panel
         JPanel buttonsPanel = new JPanel();
         JButton detailsButton = new JButton("View Details");
         JButton refreshButton = new JButton("Refresh");
@@ -176,7 +166,7 @@ public class GraphicalInterface extends JFrame {
 
     private void displayOrderDetails(String orderId) {
 
-        Order order = orderService.getOrderById(Long.parseLong(orderId));
+        Order order = orderService.getOrderById(orderId);
 
         if (order != null) {
             String details = String.format(
@@ -203,8 +193,250 @@ public class GraphicalInterface extends JFrame {
                 .orElse(null);
     }
 
+    private void updateCartDisplay(Order order, JDialog orderDialog) {
+        // Vérifier si un panneau de panier existe déjà
+        Component[] components = orderDialog.getContentPane().getComponents();
+        for (Component component : components) {
+            if (component instanceof JPanel && "cartPanel".equals(component.getName())) {
+                orderDialog.getContentPane().remove(component);
+                break;
+            }
+        }
+
+        JPanel cartPanel = new JPanel(new BorderLayout());
+        cartPanel.setName("cartPanel");
+
+        DefaultTableModel cartModel = new DefaultTableModel(
+                new String[]{"Plat", "Quantité", "Prix unitaire", "Total"}, 0);
+
+        JTable cartTable = new JTable(cartModel);
+        double totalPrice = 0;
+
+        for (fr.ynov.ubereats.domain.order.CartLine line : order.getLines()) {
+            cartModel.addRow(new Object[]{
+                    line.getDish().getName(),
+                    line.getQuantity(),
+                    line.getDish().getPrice() + "€",
+                    line.getTotalPrice() + "€"
+            });
+            totalPrice += line.getTotalPrice();
+        }
+
+        JScrollPane cartScrollPane = new JScrollPane(cartTable);
+        cartPanel.add(cartScrollPane, BorderLayout.CENTER);
+
+        JLabel totalLabel = new JLabel("Total: " + totalPrice + "€");
+        totalLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        cartPanel.add(totalLabel, BorderLayout.SOUTH);
+
+        orderDialog.getContentPane().add(cartPanel, BorderLayout.EAST);
+
+        orderDialog.setSize(700, 400);
+
+        orderDialog.revalidate();
+        orderDialog.repaint();
+    }
+
+    public void startOrderTracking(String orderId) {
+        Order order = orderService.getOrderById(orderId);
+
+        if (order == null || order.getStatus() != OrderStatus.ACCEPTED) {
+            return;
+        }
+
+        int preparationDelay = 10000;
+        int deliveryDelay = 20000;
+        int completeDelay = 30000;
+
+        Timer orderTimer = new Timer(true);
+
+        orderTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                orderService.updateOrderStatus(orderId, OrderStatus.IN_PREPARATION);
+                System.out.println("Commande " + orderId + " : maintenant en préparation");
+            }
+        }, preparationDelay);
+
+        orderTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                orderService.updateOrderStatus(orderId, OrderStatus.IN_DELIVERY);
+                System.out.println("Commande " + orderId + " : maintenant en livraison");
+            }
+        }, deliveryDelay);
+
+        orderTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                orderService.updateOrderStatus(orderId, OrderStatus.DELIVERED);
+                System.out.println("Commande " + orderId + " : livrée");
+            }
+        }, completeDelay);
+    }
+
+    public void showOrderStatusTracker(String orderId, JFrame parentFrame) {
+        JDialog trackerDialog = new JDialog(parentFrame, "Suivi de commande", false);
+        trackerDialog.setLayout(new BorderLayout());
+
+        JPanel statusPanel = new JPanel();
+        JLabel statusLabel = new JLabel("Statut: " + orderService.getOrderById(orderId).getStatus());
+        statusPanel.add(statusLabel);
+
+        JProgressBar progressBar = new JProgressBar(0, 100);
+        progressBar.setStringPainted(true);
+
+        trackerDialog.add(statusPanel, BorderLayout.NORTH);
+        trackerDialog.add(progressBar, BorderLayout.CENTER);
+
+        Timer uiTimer = new Timer(true);
+        uiTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                SwingUtilities.invokeLater(() -> {
+                    Order currentOrder = orderService.getOrderById(orderId);
+                    statusLabel.setText("Statut: " + currentOrder.getStatus());
+
+                    // Mise à jour de la barre de progression
+                    switch(currentOrder.getStatus()) {
+                        case ACCEPTED:
+                            progressBar.setValue(20);
+                            break;
+                        case IN_PREPARATION:
+                            progressBar.setValue(40);
+                            break;
+                        case IN_DELIVERY:
+                            progressBar.setValue(80);
+                            break;
+                        case DELIVERED:
+                            progressBar.setValue(100);
+                            uiTimer.cancel();
+                            break;
+                    }
+                });
+            }
+        }, 0, 5000); // Vérifier toutes les 5 secondes
+
+        trackerDialog.setSize(300, 150);
+        trackerDialog.setLocationRelativeTo(parentFrame);
+        trackerDialog.setVisible(true);
+    }
+
     private void openOrderInterface(Restaurant restaurant) {
-        showAlert("Order", "Order functionality to be developed for " + restaurant.getName());
+        Customers customer = (Customers)userService.getConnectedUser();
+
+        String orderId = java.util.UUID.randomUUID().toString();
+        Order order = orderService.createOrder(orderId, customer, restaurant);
+
+        JDialog orderDialog = new JDialog(this, "Commander chez " + restaurant.getName(), true);
+        orderDialog.setSize(400, 300);
+        orderDialog.setLayout(new BorderLayout());
+
+        JPanel dishPanel = new JPanel(new BorderLayout());
+        DefaultListModel<String> dishListModel = new DefaultListModel<>();
+        JList<String> dishList = new JList<>(dishListModel);
+
+        restaurant.getMenu().forEach(dish ->
+                dishListModel.addElement(dish.getName() + " - " + dish.getPrice() + "€")
+        );
+
+        JScrollPane dishScrollPane = new JScrollPane(dishList);
+        dishPanel.add(dishScrollPane, BorderLayout.CENTER);
+
+        JPanel quantityPanel = new JPanel();
+        JSpinner quantitySpinner = new JSpinner(new SpinnerNumberModel(1, 1, 10, 1));
+        quantityPanel.add(new JLabel("Quantité:"));
+        quantityPanel.add(quantitySpinner);
+        dishPanel.add(quantityPanel, BorderLayout.SOUTH);
+
+        JPanel buttonPanel = new JPanel();
+        JButton addButton = new JButton("Ajouter au panier");
+        JButton orderButton = new JButton("Commander");
+
+        addButton.addActionListener(e -> {
+            String selectedDish = dishList.getSelectedValue();
+            if (selectedDish != null) {
+                int quantity = (int) quantitySpinner.getValue();
+                String dishName = selectedDish.split(" - ")[0];
+
+                restaurant.getMenu().stream()
+                        .filter(dish -> dish.getName().equals(dishName))
+                        .findFirst()
+                        .ifPresent(dish -> {
+                            orderService.addDishToOrder(orderId, dish, quantity);
+
+                            JOptionPane.showMessageDialog(
+                                    orderDialog,
+                                    quantity + " x " + dishName + " ajouté au panier",
+                                    "Ajout au panier",
+                                    JOptionPane.INFORMATION_MESSAGE
+                            );
+
+                            updateCartDisplay(order, orderDialog);
+                        });
+            } else {
+                JOptionPane.showMessageDialog(
+                        orderDialog,
+                        "Veuillez sélectionner un plat",
+                        "Sélection requise",
+                        JOptionPane.WARNING_MESSAGE
+                );
+            }
+        });
+
+        orderButton.addActionListener(e -> {
+            if (order.getLines().isEmpty()) {
+                JOptionPane.showMessageDialog(orderDialog,
+                        "Votre panier est vide. Veuillez ajouter au moins un plat.",
+                        "Panier vide",
+                        JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            String paymentId = java.util.UUID.randomUUID().toString();
+            Payment payment = new Payment(paymentId, order, order.getTotalPrice(), PaymentMethod.CREDIT_CARD);
+
+            boolean paymentSuccess = payment.makePayment();
+
+            if (paymentSuccess) {
+                String receipt = payment.genereRecu();
+
+                JTextArea receiptArea = new JTextArea(receipt);
+                receiptArea.setEditable(false);
+                receiptArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+
+                JScrollPane scrollPane = new JScrollPane(receiptArea);
+                scrollPane.setPreferredSize(new Dimension(400, 300));
+
+                JOptionPane.showMessageDialog(
+                        orderDialog,
+                        scrollPane,
+                        "Reçu de commande",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+
+                orderService.updateOrderStatus(orderId, OrderStatus.ACCEPTED);
+
+                startOrderTracking(orderId);
+                showOrderStatusTracker(orderId, this);
+
+                orderDialog.dispose();
+            } else {
+                JOptionPane.showMessageDialog(orderDialog,
+                        "Échec du paiement. Veuillez réessayer.",
+                        "Erreur de paiement",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        buttonPanel.add(addButton);
+        buttonPanel.add(orderButton);
+
+        orderDialog.add(dishPanel, BorderLayout.CENTER);
+        orderDialog.add(buttonPanel, BorderLayout.SOUTH);
+
+        orderDialog.setLocationRelativeTo(this);
+        orderDialog.setVisible(true);
     }
 
     private void showAlert(String title, String message) {
@@ -244,6 +476,17 @@ public class GraphicalInterface extends JFrame {
                 showAlert("Error", "Login failed");
             }
         });
+
+
+        logoutButton.addActionListener(e -> {
+            if (userService.isLoggedIn()) {
+                userService.logout();
+                showAlert("Déconnexion", "Logout successful!");
+            } else {
+                showAlert("Erreur", "no user connected");
+            }
+        });
+
 
         panel.add(Box.createVerticalStrut(10));
         panel.add(new JLabel("Username"));
