@@ -1,28 +1,18 @@
 package fr.ynov.ubereats.service;
 
+import fr.ynov.ubereats.domain.order.CartLine;
 import fr.ynov.ubereats.domain.order.Order;
 import fr.ynov.ubereats.domain.order.OrderStatus;
+import fr.ynov.ubereats.domain.restaurant.Dish;
 import fr.ynov.ubereats.domain.user.Customers;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+
 
 public class OrderService {
     private List<Order> orders = new ArrayList<>();
 
-    public void placeOrder(Order order) {
-        orders.add(order);
-    }
-
-    public Optional<Order> findOrder(String id) {
-        for (Order order : orders) {
-            if (order.getId().equals(id)) {
-                return Optional.of(order);
-            }
-        }
-        return Optional.empty();
-    }
 
     public List<Order> listOrdersByClient(Customers customers) {
         List<Order> clientOrders = new ArrayList<>();
@@ -34,30 +24,43 @@ public class OrderService {
         return clientOrders;
     }
 
-    public List<Order> listOrdersByStatus(OrderStatus status) {
-        List<Order> ordersByStatus = new ArrayList<>();
-        for (Order order : orders) {
-            if (order.getStatus() == status) {
-                ordersByStatus.add(order);
-            }
-        }
-        return ordersByStatus;
-    }
 
-    public void deleteOrder(String id) {
-        orders.removeIf(order -> order.getId().equals(id));
-    }
 
     public boolean updateOrderStatus(String id, OrderStatus newStatus) {
         for (Order order : orders) {
             if (order.getId().equals(id)) {
-                return order.modifyStatus(newStatus);
+                return order.updateStatus(newStatus);
             }
         }
         return false;
     }
 
-    public Order getOrderById(long l) {
-        return orders.stream().filter(order -> order.getId().equals(l)).findFirst().orElse(null);
+    public Order getOrderById(String id) {
+        return orders.stream()
+                .filter(order -> order.getId().equals(id))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public Order createOrder(String id, Customers customer, fr.ynov.ubereats.domain.restaurant.Restaurant restaurant) {
+        Order newOrder = new Order(id, customer, restaurant);
+        orders.add(newOrder);
+        return newOrder;
+    }
+
+    public boolean addDishToOrder(String orderId, Dish dish, int quantity) {
+        Order order = getOrderById(orderId);
+
+        if (order == null || order.getStatus() != OrderStatus.CREATED) {
+            return false;
+        }
+
+        try {
+            CartLine cartLine = new CartLine(dish, quantity);
+            order.addCartLine(cartLine);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
