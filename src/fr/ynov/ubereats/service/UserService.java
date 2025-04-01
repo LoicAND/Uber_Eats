@@ -51,4 +51,9 @@ public class UserService {
     public boolean isLoggedIn() {
         return connectedUser != null;
     }
+
+    public void logoutUser() {
+        this.connectedUser = null;
+    }
+
 }
