@@ -15,7 +15,7 @@ public class Configuration {
     private PaymentService paymentService;
     private DeliveryService deliveryService;
 
-    public void InitialConfiguration() {
+    public void initialConfiguration() {
         this.userService = new UserService();
         this.restaurantService = new RestaurantService();
         this.orderService = new OrderService();
@@ -24,7 +24,7 @@ public class Configuration {
     }
 
     public void initialize(){
-        InitialConfiguration();
+        initialConfiguration();
         initializeUser();
         initializeRestaurant();
         launchInterface();
@@ -74,7 +74,7 @@ public class Configuration {
         userService.addUser(livreur2);
     }
 
-    public void initializeRestaurant() {
+    private void initializeRestaurant() {
             Restaurant pizzeriaNapoli = new Restaurant(
                     "Pizzeria",
                     "Pizzeria Napoli",
@@ -105,7 +105,7 @@ public class Configuration {
 
             Dish CheeseBurger = new Dish(
                     "Classique",
-                    "Cheeseburger",
+                    "cheeseBurger",
                     "Burger avec steak et fromages accompagné de frites",
                     11.00,
                     burgerAmericain
@@ -113,7 +113,7 @@ public class Configuration {
 
             Dish CheeseBacon = new Dish(
                     "Classique",
-                    "CheeseBacon",
+                    "cheeseBacon",
                     "Burger avec steak, fromage et bacon accommpagné de frites",
                     12.00,
                     burgerAmericain
