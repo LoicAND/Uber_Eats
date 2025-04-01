@@ -18,7 +18,6 @@ public class Deliver extends User {
         this.deliver = new ArrayList<>();
     }
 
-
     public boolean accepteDeliver(Order order) {
         if (this.status == DeliverStatus.AVAILABLE) {
             this.deliver.add(order);
@@ -28,37 +27,16 @@ public class Deliver extends User {
         return false;
     }
 
-    public boolean cancelDeliver(Order order) {
-        if (this.status == DeliverStatus.IN_DELIVERY) {
-            this.deliver.remove(order);
-            this.status = DeliverStatus.AVAILABLE;
-            return true;
-        }
-        return false;
-    }
-
-    public boolean enDeliver(Order order) {
-        if (this.status == DeliverStatus.IN_DELIVERY && this.deliver.contains(order)) {
-            this.deliver.remove(order);
-            this.status = DeliverStatus.AVAILABLE;
-            return true;
-        }
-        return false;
-    }
-
     public String getVehicule() {
         return vehicule;
     }
 
-    public void setVehicule(String vehicule) {
-        this.vehicule = vehicule;
+    public String getVehicleType() {
+        return vehicule;
     }
 
     public DeliverStatus getStatus() {
         return status;
     }
 
-    public List<Order> getDeliver() {
-        return new ArrayList<>(deliver);
-    }
 }
