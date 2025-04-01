@@ -51,8 +51,8 @@ public class GraphicalInterface extends JFrame {
         connectionPanel = createConnectionPanel();
 
         mainTabbedPane.addTab("Restaurants", restaurantsPanel);
-        mainTabbedPane.addTab("My Orders", ordersPanel);
-        mainTabbedPane.addTab("Connection", connectionPanel);
+        mainTabbedPane.addTab("Mes commandes", ordersPanel);
+        mainTabbedPane.addTab("Connexion", connectionPanel);
 
         setContentPane(mainTabbedPane);
     }
@@ -71,10 +71,10 @@ public class GraphicalInterface extends JFrame {
         JScrollPane listScrollPane = new JScrollPane(restaurantList);
         panel.add(listScrollPane, BorderLayout.CENTER);
 
-        JButton orderButton = new JButton("Order");
+        JButton orderButton = new JButton("Commande");
         orderButton.addActionListener(e -> {
             if (!(userService.getConnectedUser() instanceof Customers)) {
-                showAlert("Connection Required", "Please log in as a client to place an order.");
+                showAlert("Connexion requise", "Pour commander, veuillez vous connecter.");
                 return;
             }
 
@@ -101,17 +101,17 @@ public class GraphicalInterface extends JFrame {
         panel.add(tableScrollPane, BorderLayout.CENTER);
 
         JPanel buttonsPanel = new JPanel();
-        JButton detailsButton = new JButton("View Details");
-        JButton refreshButton = new JButton("Refresh");
+        JButton detailsButton = new JButton("Voir Details");
+        JButton refreshButton = new JButton("Rafraichir");
 
         detailsButton.addActionListener(e -> {
             if (!userService.isLoggedIn()) {
-                showAlert("Connection Required", "Please log in to view your orders.");
+                showAlert("Connexion requise", "Veuillez vous connecter pour voir vos détails.");
                 return;
             }
 
             if (!(userService.getConnectedUser() instanceof Customers)) {
-                showAlert("Access Denied", "Only clients can view their orders.");
+                showAlert("Accès refusé", "Réservé aux clients.");
                 return;
             }
 
@@ -138,7 +138,7 @@ public class GraphicalInterface extends JFrame {
                 Thread.sleep(1000);
 
                 if (!(userService.getConnectedUser() instanceof Customers connectedClient)) {
-                    SwingUtilities.invokeLater(() -> showAlert("Error", "Please log in."));
+                    SwingUtilities.invokeLater(() -> showAlert("Erreur", "Connectez-vous."));
                     return null;
                 }
 
@@ -164,7 +164,7 @@ public class GraphicalInterface extends JFrame {
 
             @Override
             protected void done() {
-                showAlert("Info", "Orders refreshed successfully!");
+                showAlert("Info", "Commandes mises à jour.");
             }
         }.execute();
     }
@@ -186,7 +186,7 @@ public class GraphicalInterface extends JFrame {
 
     private Restaurant getSelectedRestaurant(String restaurantSelection) {
         if (restaurantSelection == null) {
-            showAlert("Selection", "Please select a restaurant.");
+            showAlert("Selection", "Veuillez sélectionner un restaurant.");
             return null;
         }
 
@@ -248,9 +248,9 @@ public class GraphicalInterface extends JFrame {
             return;
         }
 
-        int preparationDelay = 10000;  // 10 secondes
-        int deliveryDelay = 20000;     // 20 secondes
-        int completeDelay = 30000;     // 30 secondes
+        int preparationDelay = 10000;
+        int deliveryDelay = 20000;
+        int completeDelay = 30000;
 
         Timer orderTimer = new Timer(true);
 
@@ -308,7 +308,7 @@ public class GraphicalInterface extends JFrame {
                     if (currentOrder.getStatus() == OrderStatus.IN_DELIVERY) {
                         Deliver deliverer = deliveryService.getDelivererForOrder(orderId);
                         if (deliverer != null) {
-                            delivererLabel.setText("Livreur: " + deliverer.getName() +
+                            delivererLabel.setText("Deliver: " + deliverer.getName() +
                                     " (" + deliverer.getVehicleType() + ")");
                         }
                     }
@@ -465,15 +465,15 @@ public class GraphicalInterface extends JFrame {
         JTextField usernameField = new JTextField(20);
         usernameField.setMaximumSize(usernameField.getPreferredSize());
         usernameField.setAlignmentX(Component.CENTER_ALIGNMENT);
-        usernameField.setText("Username");
+        usernameField.setText("ynov@.com");
 
         JPasswordField passwordField = new JPasswordField(20);
         passwordField.setMaximumSize(passwordField.getPreferredSize());
         passwordField.setAlignmentX(Component.CENTER_ALIGNMENT);
-        passwordField.setText("Password");
+        passwordField.setText("*****");
 
-        JButton loginButton = new JButton("Log In");
-        JButton logoutButton = new JButton("Log Out");
+        JButton loginButton = new JButton("Connexion");
+        JButton logoutButton = new JButton("Deconnexion");
 
         loginButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         logoutButton.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -484,11 +484,11 @@ public class GraphicalInterface extends JFrame {
 
             boolean loginSuccessful = userService.login(email, password);
             if (loginSuccessful) {
-                showAlert("Login", "Login successful!");
+                showAlert("connexion", "Connexion réussie!");
                 usernameField.setText("");
                 passwordField.setText("");
             } else {
-                showAlert("Error", "Login failed");
+                showAlert("Erreur", "Echec de connexion. Vérifiez vos identifiants.");
             }
         });
 
@@ -496,9 +496,9 @@ public class GraphicalInterface extends JFrame {
         logoutButton.addActionListener(e -> {
             if (userService.isLoggedIn()) {
                 userService.logout();
-                showAlert("Déconnexion", "Logout successful!");
+                showAlert("Déconnexion", "Déconnexion réussie!");
             } else {
-                showAlert("Erreur", "no user connected");
+                showAlert("Erreur", "utilisateur non connecté.");
             }
         });
 

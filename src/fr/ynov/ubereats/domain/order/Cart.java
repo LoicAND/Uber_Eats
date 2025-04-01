@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Cart {
+
     private List<CartLine> lines;
     private double totalPrice;
     private Restaurant restaurant;
