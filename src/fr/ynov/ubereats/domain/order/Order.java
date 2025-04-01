@@ -1,10 +1,10 @@
 package fr.ynov.ubereats.domain.order;
 
-import fr.ynov.ubereats.domain.restaurant.Dish;
 import fr.ynov.ubereats.domain.restaurant.Restaurant;
 import fr.ynov.ubereats.domain.user.Customers;
 import fr.ynov.ubereats.domain.user.Deliver;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -13,7 +13,7 @@ public class Order {
     private Customers customers;
     private Restaurant restaurant;
     private Deliver deliveryPerson;
-    private List<Dish> lines;
+    private List<CartLine> lines;
     private double totalPrice;
     private double deliveryFees;
     private OrderStatus status;
@@ -27,10 +27,12 @@ public class Order {
         this.restaurant = restaurant;
         this.creationDate = new Date();
         this.status = OrderStatus.CREATED;
+        this.lines = new ArrayList<>();
     }
 
     public double calculateTotalPrice() {
-        return 0.0;
+        recalculateTotalPrice();
+        return this.totalPrice;
     }
 
     public boolean cancel(){
@@ -100,9 +102,6 @@ public class Order {
         return deliveryDate;
     }
 
-    public List<Dish> getLines() {
-        return lines;
-    }
 
     public double getTotalPrice() {
         return totalPrice;
@@ -116,11 +115,15 @@ public class Order {
         return deliveryAddress;
     }
 
-    public void addCartLine(Dish line) {
-        if (this.lines == null) {
-            throw new IllegalStateException("The cart line list is not initialized");
+    public List<CartLine> getLines() {
+        return lines;
+    }
+
+    public void addCartLine(CartLine cartLine) {
+        if (this.status != OrderStatus.CREATED) {
+            throw new IllegalStateException("Cannot modify an order that has been processed");
         }
-        this.lines.add(line);
+        this.lines.add(cartLine);
         recalculateTotalPrice();
     }
 
@@ -131,10 +134,9 @@ public class Order {
         }
 
         this.totalPrice = this.lines.stream()
-                .mapToDouble(line -> line.getDish().getPrice() * line.getQuantity())
+                .mapToDouble(CartLine::getTotalPrice)
                 .sum();
 
-        // Add delivery fees if applicable
         if (this.deliveryFees > 0) {
             this.totalPrice += this.deliveryFees;
         }
@@ -154,11 +156,11 @@ public class Order {
             return 0;
         }
         return this.lines.stream()
-                .mapToInt(dish -> (int) dish.getQuantity())
+                .mapToInt(CartLine::getQuantity)
                 .sum();
     }
 
     public boolean modifyStatus(OrderStatus newStatus) {
-        return this.status == newStatus;
+        return updateStatus(newStatus);
     }
 }
