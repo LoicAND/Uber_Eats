@@ -4,10 +4,8 @@ import fr.ynov.ubereats.domain.order.Order;
 import fr.ynov.ubereats.domain.payment.Payment;
 import fr.ynov.ubereats.domain.restaurant.Restaurant;
 import fr.ynov.ubereats.domain.user.Customers;
-import fr.ynov.ubereats.service.OrderService;
-import fr.ynov.ubereats.service.PaymentService;
-import fr.ynov.ubereats.service.RestaurantService;
-import fr.ynov.ubereats.service.UserService;
+import fr.ynov.ubereats.domain.user.Deliver;
+import fr.ynov.ubereats.service.*;
 import fr.ynov.ubereats.domain.order.OrderStatus;
 import fr.ynov.ubereats.domain.payment.PaymentMethod;
 import javax.swing.*;
@@ -23,17 +21,24 @@ public class GraphicalInterface extends JFrame {
     private RestaurantService restaurantService;
     private OrderService orderService;
     private PaymentService paymentService;
+    private DeliveryService deliveryService;
 
     private JTabbedPane mainTabbedPane;
     private JPanel restaurantsPanel;
     private JPanel ordersPanel;
     private JPanel connectionPanel;
 
-    public GraphicalInterface(UserService userService, RestaurantService restaurantService, OrderService orderService, PaymentService paymentService) {
+    public GraphicalInterface(
+            UserService userService,
+            RestaurantService restaurantService,
+            OrderService orderService,
+            PaymentService paymentService,
+            DeliveryService deliveryService) {
         this.userService = userService;
         this.restaurantService = restaurantService;
         this.orderService = orderService;
         this.paymentService = paymentService;
+        this.deliveryService = deliveryService;
 
         setTitle("UberEats Clone");
         setSize(600, 400);
@@ -194,7 +199,6 @@ public class GraphicalInterface extends JFrame {
     }
 
     private void updateCartDisplay(Order order, JDialog orderDialog) {
-        // Vérifier si un panneau de panier existe déjà
         Component[] components = orderDialog.getContentPane().getComponents();
         for (Component component : components) {
             if (component instanceof JPanel && "cartPanel".equals(component.getName())) {
@@ -244,9 +248,9 @@ public class GraphicalInterface extends JFrame {
             return;
         }
 
-        int preparationDelay = 10000;
-        int deliveryDelay = 20000;
-        int completeDelay = 30000;
+        int preparationDelay = 10000;  // 10 secondes
+        int deliveryDelay = 20000;     // 20 secondes
+        int completeDelay = 30000;     // 30 secondes
 
         Timer orderTimer = new Timer(true);
 
@@ -254,15 +258,17 @@ public class GraphicalInterface extends JFrame {
             @Override
             public void run() {
                 orderService.updateOrderStatus(orderId, OrderStatus.IN_PREPARATION);
-                System.out.println("Commande " + orderId + " : maintenant en préparation");
             }
         }, preparationDelay);
 
         orderTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                orderService.updateOrderStatus(orderId, OrderStatus.IN_DELIVERY);
-                System.out.println("Commande " + orderId + " : maintenant en livraison");
+                Deliver assignedDeliverer = deliveryService.autoAssignDeliverer(orderId);
+
+                if (assignedDeliverer != null) {
+                    orderService.updateOrderStatus(orderId, OrderStatus.IN_DELIVERY);
+                }
             }
         }, deliveryDelay);
 
@@ -270,7 +276,7 @@ public class GraphicalInterface extends JFrame {
             @Override
             public void run() {
                 orderService.updateOrderStatus(orderId, OrderStatus.DELIVERED);
-                System.out.println("Commande " + orderId + " : livrée");
+                deliveryService.completeDelivery(orderId);
             }
         }, completeDelay);
     }
@@ -279,9 +285,11 @@ public class GraphicalInterface extends JFrame {
         JDialog trackerDialog = new JDialog(parentFrame, "Suivi de commande", false);
         trackerDialog.setLayout(new BorderLayout());
 
-        JPanel statusPanel = new JPanel();
+        JPanel statusPanel = new JPanel(new GridLayout(2, 1));
         JLabel statusLabel = new JLabel("Statut: " + orderService.getOrderById(orderId).getStatus());
+        JLabel delivererLabel = new JLabel("Livreur: Non assigné");
         statusPanel.add(statusLabel);
+        statusPanel.add(delivererLabel);
 
         JProgressBar progressBar = new JProgressBar(0, 100);
         progressBar.setStringPainted(true);
@@ -297,7 +305,14 @@ public class GraphicalInterface extends JFrame {
                     Order currentOrder = orderService.getOrderById(orderId);
                     statusLabel.setText("Statut: " + currentOrder.getStatus());
 
-                    // Mise à jour de la barre de progression
+                    if (currentOrder.getStatus() == OrderStatus.IN_DELIVERY) {
+                        Deliver deliverer = deliveryService.getDelivererForOrder(orderId);
+                        if (deliverer != null) {
+                            delivererLabel.setText("Livreur: " + deliverer.getName() +
+                                    " (" + deliverer.getVehicleType() + ")");
+                        }
+                    }
+
                     switch(currentOrder.getStatus()) {
                         case ACCEPTED:
                             progressBar.setValue(20);
@@ -315,7 +330,7 @@ public class GraphicalInterface extends JFrame {
                     }
                 });
             }
-        }, 0, 5000); // Vérifier toutes les 5 secondes
+        }, 0, 5000);
 
         trackerDialog.setSize(300, 150);
         trackerDialog.setLocationRelativeTo(parentFrame);
