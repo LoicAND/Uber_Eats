@@ -26,7 +26,7 @@ public class DeliveryService {
             return false;
         }
 
-        boolean accepted = deliverer.accepteDeliver(order);
+        boolean accepted = deliverer.accepteDelivery(order);
         if (accepted) {
             orderAssignments.put(orderId, deliverer);
         }
