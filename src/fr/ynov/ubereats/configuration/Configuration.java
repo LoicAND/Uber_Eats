@@ -77,7 +77,7 @@ public class Configuration {
 
     public void initializeRestaurant() {
             Restaurant pizzeriaNapoli = new Restaurant(
-                    "Pizzeria ",
+                    "Pizzeria",
                     "Pizzeria Napoli",
                     "12 Rue de la Pizza"
             );
