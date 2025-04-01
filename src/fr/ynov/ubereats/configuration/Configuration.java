@@ -5,10 +5,7 @@ import fr.ynov.ubereats.domain.restaurant.Restaurant;
 import fr.ynov.ubereats.domain.user.Customers;
 import fr.ynov.ubereats.domain.user.Deliver;
 import fr.ynov.ubereats.gui.GraphicalInterface;
-import fr.ynov.ubereats.service.OrderService;
-import fr.ynov.ubereats.service.PaymentService;
-import fr.ynov.ubereats.service.RestaurantService;
-import fr.ynov.ubereats.service.UserService;
+import fr.ynov.ubereats.service.*;
 
 public class Configuration {
 
@@ -16,12 +13,14 @@ public class Configuration {
     private RestaurantService restaurantService;
     private OrderService orderService;
     private PaymentService paymentService;
+    private DeliveryService deliveryService;
 
     public void InitialConfiguration() {
         this.userService = new UserService();
         this.restaurantService = new RestaurantService();
         this.orderService = new OrderService();
         this.paymentService = new PaymentService();
+        this.deliveryService = new DeliveryService(orderService, userService);
     }
 
     public void initialize(){
@@ -133,7 +132,8 @@ public class Configuration {
         }
 
     public void launchInterface() {
-        GraphicalInterface userInterface = new GraphicalInterface(userService, restaurantService, orderService, paymentService);
+        GraphicalInterface userInterface = new GraphicalInterface(
+                userService, restaurantService, orderService, paymentService, deliveryService);
         userInterface.setVisible(true);
     }
 }
