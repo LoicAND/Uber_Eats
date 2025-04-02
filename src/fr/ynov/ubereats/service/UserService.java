@@ -9,7 +9,7 @@ import java.util.Optional;
 
 
 public class UserService {
-    private List<User> users = new ArrayList<>();
+    private final List<User> users = new ArrayList<>();
     private User connectedUser = null;
 
     public void addUser(User user) {
@@ -38,22 +38,18 @@ public class UserService {
         Optional<User> user = this.findUser(email);
 
         if (user.isPresent() && user.get().login(email, password)) {
-            System.out.println("Login successful!");
             this.setConnectedUser(user.get());
             return true;
-        } else {
-            System.out.println("Incorrect email or password.");
-            return false;
         }
+        return false;
     }
 
     private void setConnectedUser(User user) {
         this.connectedUser = user;
     }
 
-    public boolean logout() {
+    public void logout() {
         connectedUser = null;
-        return false;
     }
 
     public User getConnectedUser() {
