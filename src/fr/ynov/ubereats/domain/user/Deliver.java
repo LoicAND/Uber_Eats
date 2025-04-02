@@ -1,35 +1,41 @@
 package fr.ynov.ubereats.domain.user;
 
-import fr.ynov.ubereats.domain.order.DeliverStatus;
-import fr.ynov.ubereats.domain.order.Order;
-
-import java.util.ArrayList;
-import java.util.List;
-
+/**
+ * Represents a delivery person in the Uber Eats application.
+ * Delivery personnel are responsible for transporting orders from restaurants to customers.
+ * This class extends the base User class with delivery-specific functionality.
+ *
+ * @author Loïc ANDRIANARIVONY
+ */
 public class Deliver extends User {
-    private final String vehicule;
-    private DeliverStatus status;
-    private final List<Order> deliveries;
 
-    public Deliver(String id, String nom, String email, String telephone, String vehicule) {
-        super(id, nom, email, telephone, null, null);
-        this.vehicule = vehicule;
-        this.status = DeliverStatus.AVAILABLE;
-        this.deliveries = new ArrayList<>();
+    /**
+     * The type of vehicle used by the delivery person.
+     * This cannot be changed after the delivery person is created.
+     */
+    private final String vehicle;
+
+    /**
+     * Creates a new delivery person with the specified personal information.
+     * Delivery personnel don't require a password or address as they use a different authentication method.
+     *
+     * @param id Unique identifier for the delivery person
+     * @param name Name of the delivery person
+     * @param email Email address of the delivery person
+     * @param phone Phone number of the delivery person
+     * @param vehicle Type of vehicle used for deliveries (e.g., "bicycle", "car", "scooter")
+     */
+    public Deliver(String id, String name, String email, String phone, String vehicle) {
+        super(id, name, email, phone, null, null);
+        this.vehicle = vehicle;
     }
 
-    public boolean accepteDelivery(Order order) {
-        if (this.status == DeliverStatus.AVAILABLE) {
-            this.deliveries.add(order);
-            this.status = DeliverStatus.IN_DELIVERY;
-            return true;
-        }
-        return false;
-    }
-
+    /**
+     * Returns the type of vehicle used by this delivery person.
+     *
+     * @return The type of vehicle used for deliveries
+     */
     public String getVehicleType() {
-        return vehicule;
+        return vehicle;
     }
-
-
 }
