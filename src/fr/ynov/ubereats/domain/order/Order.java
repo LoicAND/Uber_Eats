@@ -25,8 +25,15 @@ public class Order {
         this.creationDate = new Date();
         this.status = OrderStatus.CREATED;
         this.lines = new ArrayList<>();
+        this.deliveryFees = calculateDeliveryFees(customers, restaurant);
     }
 
+    private double calculateDeliveryFees(Customers customers, Restaurant restaurant) {
+        double baseRate = 2.99;
+        double distanceRate = 0.5;
+        double estimatedDistance = Math.random() * 10;
+        return Math.round((baseRate + (distanceRate * estimatedDistance)) * 100.0) / 100.0;
+    }
     public void updateStatus(OrderStatus newStatus) {
         if (isTransitionValid(newStatus)) {
             this.status = newStatus;
@@ -51,7 +58,28 @@ public class Order {
             case CANCELED -> false;
         };
     }
+    public void addCartLine(CartLine cartLine) {
+        if (this.status != OrderStatus.CREATED) {
+            throw new IllegalStateException("Cannot modify an order that has been processed");
+        }
+        this.lines.add(cartLine);
+        recalculateTotalPrice();
+    }
 
+    private void recalculateTotalPrice() {
+        if (this.lines.isEmpty()) {
+            this.totalPrice = 0.0;
+            return;
+        }
+
+        this.totalPrice = this.lines.stream()
+                .mapToDouble(CartLine::getTotalPrice)
+                .sum();
+
+        if (this.deliveryFees > 0) {
+            this.totalPrice += this.deliveryFees;
+        }
+    }
     public OrderStatus getStatus() {
         return status;
     }
@@ -81,27 +109,9 @@ public class Order {
         return lines;
     }
 
-    public void addCartLine(CartLine cartLine) {
-        if (this.status != OrderStatus.CREATED) {
-            throw new IllegalStateException("Cannot modify an order that has been processed");
-        }
-        this.lines.add(cartLine);
-        recalculateTotalPrice();
+    public double getDeliveryFees() {
+        return deliveryFees;
     }
 
-    private void recalculateTotalPrice() {
-        if (this.lines.isEmpty()) {
-            this.totalPrice = 0.0;
-            return;
-        }
-
-        this.totalPrice = this.lines.stream()
-                .mapToDouble(CartLine::getTotalPrice)
-                .sum();
-
-        if (this.deliveryFees > 0) {
-            this.totalPrice += this.deliveryFees;
-        }
-    }
 
 }
