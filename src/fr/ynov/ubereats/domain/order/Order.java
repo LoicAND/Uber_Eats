@@ -27,30 +27,28 @@ public class Order {
         this.lines = new ArrayList<>();
     }
 
-    public boolean updateStatus(OrderStatus newStatus) {
+    public void updateStatus(OrderStatus newStatus) {
         if (isTransitionValid(newStatus)) {
             this.status = newStatus;
 
             if (newStatus == OrderStatus.DELIVERED) {
                 this.deliveryDate = new Date();
             }
-            return true;
         }
-        return false;
     }
 
     private boolean isTransitionValid(OrderStatus newStatus) {
         return switch (this.status) {
             case CREATED -> newStatus == OrderStatus.ACCEPTED ||
-                    newStatus == OrderStatus.CANCELLED;
+                    newStatus == OrderStatus.CANCELED;
             case ACCEPTED -> newStatus == OrderStatus.IN_PREPARATION ||
-                    newStatus == OrderStatus.CANCELLED;
+                    newStatus == OrderStatus.CANCELED;
             case IN_PREPARATION -> newStatus == OrderStatus.IN_DELIVERY ||
-                    newStatus == OrderStatus.CANCELLED;
+                    newStatus == OrderStatus.CANCELED;
             case IN_DELIVERY -> newStatus == OrderStatus.DELIVERED ||
-                    newStatus == OrderStatus.CANCELLED;
+                    newStatus == OrderStatus.CANCELED;
             case DELIVERED -> false;
-            case CANCELLED -> false;
+            case CANCELED -> false;
         };
     }
 
