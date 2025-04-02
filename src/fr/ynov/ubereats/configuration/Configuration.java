@@ -132,6 +132,14 @@ public class Configuration {
                     pizzeriaNapoli
             );
 
+            Dish pizzaPepperoni = new Dish(
+                    "Pizza classique",
+                    "Pepperoni",
+                    "Pizza au pepperoni",
+                    13.50,
+                    pizzeriaNapoli
+            );
+
             Restaurant burgerAmericain = new Restaurant(
                     "Burger",
                     "A l'Americaine",
@@ -154,16 +162,98 @@ public class Configuration {
                     burgerAmericain
             );
 
+            Dish CheeseBaconAvocat = new Dish(
+                    "Classique",
+                    "cheeseBaconAvocat",
+                    "Burger avec steak, fromage, bacon et avocat accompagné de frites",
+                    12.50,
+                    burgerAmericain
+            );
+
+            Restaurant SushiRestaurant = new Restaurant(
+                    "Sushi",
+                    "Sushi Shop",
+                    "45 Rue des Sushis"
+            );
+
+            Dish sushiCalifornia = new Dish(
+                    "Sushi",
+                    "California Roll",
+                    "boite de 8 California Rolls avec avocat et concombre",
+                    8.50,
+                    SushiRestaurant
+            );
+
+            Dish sushiNigiri = new Dish(
+                    "Sushi",
+                    "Nigiri",
+                    "boite de 8 Nigiri avec saumon et thon",
+                    9.50,
+                    SushiRestaurant
+            );
+
+            Dish sushiBacon = new Dish(
+                    "Sushi",
+                    "Bacon Roll",
+                    "boite de 8 Bacon Rolls avec avocat et concombre",
+                    8.50,
+                    SushiRestaurant
+            );
+
+            Restaurant PouletMama = new Restaurant(
+                    "Poulet",
+                    "Poulet Frit",
+                    "45 Rue des Poulets"
+            );
+
+            Dish pouletFrit = new Dish(
+                    "Poulet",
+                    "Poulet Frit",
+                    "boite de 8 morceaux de poulet frits avec frites et sauce",
+                    10.50,
+                    PouletMama
+            );
+
+            Dish TenderPoulet = new Dish(
+                    "Poulet",
+                    "Tenders",
+                    "boite de 8 Tenders de poulet avec frites et sauce",
+                    11.50,
+                    PouletMama
+            );
+
+            Dish ChaudMama = new Dish(
+                    "Poulet",
+                    "Chaud Mama",
+                    "boite de 8 morceaux de poulet frits piquant avec frites et sauce",
+                    10.50,
+                    PouletMama
+            );
+
 
             pizzeriaNapoli.addDish(pizzaMargherita);
             pizzeriaNapoli.addDish(pizzaQuattroFormaggi);
+            pizzeriaNapoli.addDish(pizzaPepperoni);
 
             restaurantService.addRestaurant(pizzeriaNapoli);
 
+            burgerAmericain.addDish(CheeseBaconAvocat);
             burgerAmericain.addDish(CheeseBurger);
             burgerAmericain.addDish(CheeseBacon);
 
             restaurantService.addRestaurant(burgerAmericain);
+
+            SushiRestaurant.addDish(sushiBacon);
+            SushiRestaurant.addDish(sushiCalifornia);
+            SushiRestaurant.addDish(sushiNigiri);
+
+            restaurantService.addRestaurant(SushiRestaurant);
+
+            PouletMama.addDish(pouletFrit);
+            PouletMama.addDish(TenderPoulet);
+            PouletMama.addDish(ChaudMama);
+
+            restaurantService.addRestaurant(PouletMama);
         }
 
     /**
