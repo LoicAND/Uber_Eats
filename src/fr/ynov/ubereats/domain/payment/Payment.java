@@ -9,7 +9,7 @@ public class Payment {
     private double price;
     private Date date;
     private PaymentMethod methode;
-    private PaymentStatus statut;
+    private PaymentStatus status;
     private Order order;
 
     public Payment(String id, Order order, double price, PaymentMethod methode) {
@@ -18,20 +18,20 @@ public class Payment {
         this.price = price;
         this.methode = methode;
         this.date = new Date();
-        this.statut = PaymentStatus.ON_HOLD;
+        this.status = PaymentStatus.ON_HOLD;
     }
 
     public boolean makePayment() {
-        if (this.statut == PaymentStatus.ON_HOLD) {
-            this.statut = PaymentStatus.ACCEPTED;
+        if (this.status == PaymentStatus.ON_HOLD) {
+            this.status = PaymentStatus.ACCEPTED;
             return true;
         }
         return false;
     }
 
     public boolean cancelPayment() {
-        if (this.statut == PaymentStatus.ACCEPTED || this.statut == PaymentStatus.ON_HOLD) {
-            this.statut = PaymentStatus.REFUNDED;
+        if (this.status == PaymentStatus.ACCEPTED || this.status == PaymentStatus.ON_HOLD) {
+            this.status = PaymentStatus.REFUNDED;
             return true;
         }
         return false;
@@ -43,7 +43,7 @@ public class Payment {
                 "Montant: " + price + "\n" +
                 "Date: " + date + "\n" +
                 "Méthode: " + methode + "\n" +
-                "Statut: " + statut;
+                "Statut: " + status;
     }
 
     public String getId() {
@@ -56,11 +56,16 @@ public class Payment {
     }
 
     public PaymentStatus getStatus() {
-        return statut;
+        return status;
     }
 
     public Order getOrder() {
         return order;
+    }
+
+
+    public void updateStatus(PaymentStatus newStatus) {
+        this.status = newStatus;
     }
 }
 
