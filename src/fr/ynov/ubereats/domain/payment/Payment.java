@@ -27,13 +27,24 @@ public class Payment {
         }
     }
 
-    public String genereRecu(){
+    public String receiptOrder(){
+        String methodeName = switch(methode) {
+            case CREDIT_CARD -> "Carte de crédit";
+            case PAYPAL -> "PayPal";
+            case TICKET -> "Ticket restaurant";
+        };
+
+        double subtotal = price - order.getDeliveryFees();
+
         return "Reçu de paiement\n" +
                 "ID: " + id + "\n" +
-                "Montant: " + price + "\n" +
                 "Date: " + date + "\n" +
-                "Méthode: " + methode + "\n" +
-                "Statut: " + status;
+                "Restaurant: " + order.getRestaurant().getName() + "\n\n" +
+                "Sous-total: " + String.format("%.2f€", subtotal) + "\n" +
+                "Frais de livraison: " + String.format("%.2f€", order.getDeliveryFees()) + "\n" +
+                "Montant total: " + String.format("%.2f€", price) + "\n\n" +
+                "Méthode de paiement: " + methodeName + "\n" +
+                "Statut: " + (status == PaymentStatus.ACCEPTED ? "Payé" : status);
     }
 
     public String getId() {
