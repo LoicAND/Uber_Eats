@@ -7,14 +7,34 @@ import fr.ynov.ubereats.domain.user.Deliver;
 import fr.ynov.ubereats.gui.GraphicalInterface;
 import fr.ynov.ubereats.service.*;
 
-public class Configuration {
+/**
+ * Main configuration class for the Uber Eats application.
+ * Manages service initialization, demo data creation and GUI launch.
+ * This class is responsible for bootstrapping the entire application
+ * by setting up all necessary services and initial data.
+ *
+ * @author Loïc ANDRIANARIVONY
+ */
 
+public class Configuration {
+    /**
+     * Service managing user accounts, authentication and profile information.
+     * Service managing restaurant data, menus and dish information.
+     * Service managing order creation, updates and tracking.
+     * Service handling payment processing and transaction records.
+     * Service coordinating delivery assignments and logistics.
+     */
     private UserService userService;
     private RestaurantService restaurantService;
     private OrderService orderService;
     private PaymentService paymentService;
     private DeliveryService deliveryService;
 
+
+    /**
+     * Initializes the configuration by creating instances of all services.
+     * Sets up the core services needed for the application to function.
+     */
     public void initialConfiguration() {
         this.userService = new UserService();
         this.restaurantService = new RestaurantService();
@@ -23,6 +43,11 @@ public class Configuration {
         this.deliveryService = new DeliveryService(orderService, userService);
     }
 
+    /**
+     * Main initialization method that orchestrates the complete application setup.
+     * Calls other initialization methods in the proper sequence to ensure
+     * all components are ready before the GUI launches.
+     */
     public void initialize(){
         initialConfiguration();
         initializeUser();
@@ -30,7 +55,12 @@ public class Configuration {
         launchInterface();
     }
 
+    /**
+     * Initializes demo users and adds them to the user service.
+     * Creates sample customers and delivery personnel with realistic test data.
+     */
     private void initializeUser() {
+        // Create demo users
         Customers client1 = new Customers(
                 "Jean",
                 "Jean Dupont",
@@ -74,7 +104,12 @@ public class Configuration {
         userService.addUser(livreur2);
     }
 
+    /**
+     * Initializes demo restaurants and dishes and adds them to the restaurant service.
+     * Creates sample restaurants with menus containing various dishes for testing.
+     */
     private void initializeRestaurant() {
+        // Create demo restaurants and dishes
             Restaurant pizzeriaNapoli = new Restaurant(
                     "Pizzeria",
                     "Pizzeria Napoli",
@@ -131,6 +166,10 @@ public class Configuration {
             restaurantService.addRestaurant(burgerAmericain);
         }
 
+    /**
+     * Launches the graphical user interface with all initialized services.
+     * This method is called after all other initialization steps are complete.
+     */
     public void launchInterface() {
         GraphicalInterface userInterface = new GraphicalInterface(
                 userService, restaurantService, orderService, paymentService, deliveryService);
