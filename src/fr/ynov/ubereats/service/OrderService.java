@@ -8,6 +8,7 @@ import fr.ynov.ubereats.domain.user.Customers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 
 public class OrderService {
@@ -60,5 +61,25 @@ public class OrderService {
             order.addCartLine(cartLine);
         } catch (Exception _) {
         }
+    }
+
+    public boolean cancelOrder(String orderId) {
+        Optional<Order> orderOpt = findOrderById(orderId);
+
+        if (orderOpt.isPresent()) {
+            Order order = orderOpt.get();
+            if (order.getStatus() != OrderStatus.DELIVERED &&
+                    order.getStatus() != OrderStatus.CANCELED) {
+                order.updateStatus(OrderStatus.CANCELED);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public Optional<Order> findOrderById(String id) {
+        return orders.stream()
+                .filter(order -> order.getId().equals(id))
+                .findFirst();
     }
 }
