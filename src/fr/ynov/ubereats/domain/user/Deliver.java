@@ -7,9 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Deliver extends User {
-    private String vehicule;
+    private final String vehicule;
     private DeliverStatus status;
-    private List<Order> deliveries;
+    private final List<Order> deliveries;
 
     public Deliver(String id, String nom, String email, String telephone, String vehicule) {
         super(id, nom, email, telephone, null, null);
@@ -27,13 +27,9 @@ public class Deliver extends User {
         return false;
     }
 
-
     public String getVehicleType() {
         return vehicule;
     }
 
-    public DeliverStatus getStatus() {
-        return status;
-    }
 
 }
