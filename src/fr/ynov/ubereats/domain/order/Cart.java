@@ -8,7 +8,7 @@ import java.util.List;
 
 public class Cart {
 
-    private List<CartLine> lines;
+    private final List<CartLine> lines;
     private double totalPrice;
     private Restaurant restaurant;
 
@@ -40,30 +40,6 @@ public class Cart {
         }
     }
 
-    public void modifyDish(Dish dish, int quantity) {
-        for (CartLine line : lines) {
-            if (line.getDish().equals(dish)) {
-                if (quantity > 0) {
-                    line.setQuantity(quantity);
-                } else {
-                    lines.remove(line);
-                }
-                calculateTotalPrice();
-                return;
-            }
-        }
-        throw new IllegalArgumentException("Dish not found in the cart");
-    }
-
-    public void removeDish(Dish dish) {
-        lines.removeIf(line -> line.getDish().equals(dish));
-        calculateTotalPrice();
-
-        if (lines.isEmpty()) {
-            restaurant = null;
-        }
-    }
-
     public void clear() {
         lines.clear();
         totalPrice = 0.0;
@@ -76,15 +52,8 @@ public class Cart {
                 .sum();
     }
 
-    public List<CartLine> getLines() {
-        return new ArrayList<>(lines);
-    }
-
-    public double getTotalPrice() {
-        return totalPrice;
-    }
-
     public Restaurant getRestaurant() {
         return restaurant;
     }
+
 }
