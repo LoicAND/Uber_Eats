@@ -11,7 +11,7 @@ import java.util.List;
 
 
 public class OrderService {
-    private List<Order> orders = new ArrayList<>();
+    private final List<Order> orders = new ArrayList<>();
 
 
     public List<Order> listOrdersByClient(Customers customers) {
@@ -26,13 +26,13 @@ public class OrderService {
 
 
 
-    public boolean updateOrderStatus(String id, OrderStatus newStatus) {
+    public void updateOrderStatus(String id, OrderStatus newStatus) {
         for (Order order : orders) {
             if (order.getId().equals(id)) {
-                return order.updateStatus(newStatus);
+                order.updateStatus(newStatus);
+                return;
             }
         }
-        return false;
     }
 
     public Order getOrderById(String id) {
@@ -48,19 +48,17 @@ public class OrderService {
         return newOrder;
     }
 
-    public boolean addDishToOrder(String orderId, Dish dish, int quantity) {
+    public void addDishToOrder(String orderId, Dish dish, int quantity) {
         Order order = getOrderById(orderId);
 
         if (order == null || order.getStatus() != OrderStatus.CREATED) {
-            return false;
+            return;
         }
 
         try {
             CartLine cartLine = new CartLine(dish, quantity);
             order.addCartLine(cartLine);
-            return true;
-        } catch (Exception e) {
-            return false;
+        } catch (Exception _) {
         }
     }
 }
