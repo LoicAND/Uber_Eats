@@ -599,6 +599,54 @@ public class GraphicalInterface extends JFrame {
                 Payment payment = paymentService.createPayment(order, selectedMethod);
 
                 if (payment.getStatus() == PaymentStatus.ACCEPTED) {
+                    String[] options = {"Pas de pourboire", "5%", "10%", "15%", "Montant personnalisé"};
+                    int tipChoice = JOptionPane.showOptionDialog(
+                            orderDialog,
+                            "Souhaitez-vous ajouter un pourboire pour le livreur?",
+                            "Ajouter un pourboire",
+                            JOptionPane.DEFAULT_OPTION,
+                            JOptionPane.QUESTION_MESSAGE,
+                            null,
+                            options,
+                            options[0]
+                    );
+
+                    double tipAmount = 0.0;
+                    if (tipChoice > 0 && tipChoice < 4) {
+                        int percentage = (tipChoice == 1) ? 5 : (tipChoice == 2) ? 10 : 15;
+                        tipAmount = order.getTotalPrice() * percentage / 100.0;
+                    } else if (tipChoice == 4) {
+                        String input = JOptionPane.showInputDialog(
+                                orderDialog,
+                                "Veuillez entrer le montant du pourboire (€):",
+                                "Pourboire personnalisé",
+                                JOptionPane.PLAIN_MESSAGE
+                        );
+
+                        if (input != null && !input.isEmpty()) {
+                            try {
+                                tipAmount = Double.parseDouble(input.replace(',', '.'));
+                            } catch (NumberFormatException e) {
+                                JOptionPane.showMessageDialog(
+                                        orderDialog,
+                                        "Montant invalide. Aucun pourboire ne sera ajouté.",
+                                        "Erreur",
+                                        JOptionPane.ERROR_MESSAGE
+                                );
+                            }
+                        }
+                    }
+
+                    if (tipAmount > 0) {
+                        payment.addTip(tipAmount);
+                        JOptionPane.showMessageDialog(
+                                orderDialog,
+                                String.format("Merci! Un pourboire de %.2f€ a été ajouté.", tipAmount),
+                                "Pourboire ajouté",
+                                JOptionPane.INFORMATION_MESSAGE
+                        );
+                    }
+
                     JTextArea receiptArea = new JTextArea(payment.receiptOrder());
                     receiptArea.setEditable(false);
                     receiptArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
