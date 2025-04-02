@@ -142,25 +142,4 @@ public class Order {
         }
     }
 
-    public void setDeliveryFees(double fees) {
-        this.deliveryFees = fees;
-        recalculateTotalPrice();
-    }
-
-    public void setDeliveryAddress(String address) {
-        this.deliveryAddress = address;
-    }
-
-    public int getTotalNumberOfItems() {
-        if (this.lines == null) {
-            return 0;
-        }
-        return this.lines.stream()
-                .mapToInt(CartLine::getQuantity)
-                .sum();
-    }
-
-    public boolean modifyStatus(OrderStatus newStatus) {
-        return updateStatus(newStatus);
-    }
 }
