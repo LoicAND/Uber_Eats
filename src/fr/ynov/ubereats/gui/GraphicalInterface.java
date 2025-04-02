@@ -18,16 +18,11 @@ import java.util.Vector;
 import java.util.List;
 
 public class GraphicalInterface extends JFrame {
-    private UserService userService;
-    private RestaurantService restaurantService;
-    private OrderService orderService;
-    private PaymentService paymentService;
-    private DeliveryService deliveryService;
-
-    private JTabbedPane mainTabbedPane;
-    private JPanel restaurantsPanel;
-    private JPanel ordersPanel;
-    private JPanel connectionPanel;
+    private final UserService userService;
+    private final RestaurantService restaurantService;
+    private final OrderService orderService;
+    private final PaymentService paymentService;
+    private final DeliveryService deliveryService;
 
     public GraphicalInterface(
             UserService userService,
@@ -45,11 +40,11 @@ public class GraphicalInterface extends JFrame {
         setSize(600, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        mainTabbedPane = new JTabbedPane();
+        JTabbedPane mainTabbedPane = new JTabbedPane();
 
-        restaurantsPanel = createRestaurantsPanel();
-        ordersPanel = createOrdersPanel();
-        connectionPanel = createConnectionPanel();
+        JPanel restaurantsPanel = createRestaurantsPanel();
+        JPanel ordersPanel = createOrdersPanel();
+        JPanel connectionPanel = createConnectionPanel();
 
         mainTabbedPane.addTab("Restaurants", restaurantsPanel);
         mainTabbedPane.addTab("Mes commandes", ordersPanel);
@@ -73,7 +68,7 @@ public class GraphicalInterface extends JFrame {
         panel.add(listScrollPane, BorderLayout.CENTER);
 
         JButton orderButton = new JButton("Commande");
-        orderButton.addActionListener(e -> {
+        orderButton.addActionListener(_ -> {
             if (!(userService.getConnectedUser() instanceof Customers)) {
                 showAlert("Connexion requise", "Pour commander, veuillez vous connecter.");
                 return;
@@ -105,7 +100,7 @@ public class GraphicalInterface extends JFrame {
         JButton detailsButton = new JButton("Voir Details");
         JButton refreshButton = new JButton("Rafraichir");
 
-        detailsButton.addActionListener(e -> {
+        detailsButton.addActionListener(_ -> {
             if (!userService.isLoggedIn()) {
                 showAlert("Connexion requise", "Veuillez vous connecter pour voir vos détails.");
                 return;
@@ -123,7 +118,7 @@ public class GraphicalInterface extends JFrame {
             }
         });
 
-        refreshButton.addActionListener(e -> refreshOrders(tableModel));
+        refreshButton.addActionListener(_ -> refreshOrders(tableModel));
 
         buttonsPanel.add(detailsButton);
         buttonsPanel.add(refreshButton);
@@ -339,12 +334,11 @@ public class GraphicalInterface extends JFrame {
     }
 
     private String getMethodLabel(PaymentMethod method) {
-        switch (method) {
-            case CREDIT_CARD: return "Carte de crédit";
-            case PAYPAL: return "PayPal";
-            case TICKET: return "Ticket restaurant";
-            default: return method.name();
-        }
+        return switch (method) {
+            case CREDIT_CARD -> "Carte de crédit";
+            case PAYPAL -> "PayPal";
+            case TICKET -> "Ticket restaurant";
+        };
     }
 
     private void openOrderInterface(Restaurant restaurant) {
@@ -378,7 +372,7 @@ public class GraphicalInterface extends JFrame {
         JButton addButton = new JButton("Ajouter au panier");
         JButton orderButton = new JButton("Commander");
 
-        addButton.addActionListener(e -> {
+        addButton.addActionListener(_ -> {
             String selectedDish = dishList.getSelectedValue();
             if (selectedDish != null) {
                 int quantity = (int) quantitySpinner.getValue();
@@ -409,7 +403,7 @@ public class GraphicalInterface extends JFrame {
             }
         });
 
-        orderButton.addActionListener(e -> {
+        orderButton.addActionListener(_ -> {
             if (order.getLines().isEmpty()) {
                 JOptionPane.showMessageDialog(orderDialog,
                         "Votre panier est vide. Veuillez ajouter au moins un plat.",
@@ -535,7 +529,7 @@ public class GraphicalInterface extends JFrame {
         loginButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         logoutButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        loginButton.addActionListener(e -> {
+        loginButton.addActionListener(_ -> {
             String email = usernameField.getText();
             String password = new String(passwordField.getPassword());
 
@@ -550,7 +544,7 @@ public class GraphicalInterface extends JFrame {
         });
 
 
-        logoutButton.addActionListener(e -> {
+        logoutButton.addActionListener(_ -> {
             if (userService.isLoggedIn()) {
                 userService.logout();
                 showAlert("Déconnexion", "Déconnexion réussie!");
