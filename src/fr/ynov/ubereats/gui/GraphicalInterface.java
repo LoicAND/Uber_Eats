@@ -555,6 +555,12 @@ public class GraphicalInterface extends JFrame {
         JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE);
     }
 
+    private void updateButtonsVisibility(JButton loginButton, JButton logoutButton) {
+        boolean isLoggedIn = userService.isLoggedIn();
+        loginButton.setVisible(!isLoggedIn);
+        logoutButton.setVisible(isLoggedIn);
+    }
+
     private JPanel createConnectionPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -562,18 +568,20 @@ public class GraphicalInterface extends JFrame {
         JTextField usernameField = new JTextField(20);
         usernameField.setMaximumSize(usernameField.getPreferredSize());
         usernameField.setAlignmentX(Component.CENTER_ALIGNMENT);
-        usernameField.setText("ynov@.com");
+        usernameField.setText("utilisateurs@exemple.com");
 
         JPasswordField passwordField = new JPasswordField(20);
         passwordField.setMaximumSize(passwordField.getPreferredSize());
         passwordField.setAlignmentX(Component.CENTER_ALIGNMENT);
-        passwordField.setText("*****");
+        passwordField.setText("");
 
         JButton loginButton = new JButton("Connexion");
-        JButton logoutButton = new JButton("Deconnexion");
+        JButton logoutButton = new JButton("Déconnexion");
 
         loginButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         logoutButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        updateButtonsVisibility(loginButton, logoutButton);
 
         loginButton.addActionListener(_ -> {
             String email = usernameField.getText();
@@ -581,24 +589,25 @@ public class GraphicalInterface extends JFrame {
 
             boolean loginSuccessful = userService.login(email, password);
             if (loginSuccessful) {
-                showAlert("connexion", "Connexion réussie!");
+                showAlert("Connexion", "Connexion réussie!");
                 usernameField.setText("");
                 passwordField.setText("");
+                updateButtonsVisibility(loginButton, logoutButton);
             } else {
-                showAlert("Erreur", "Echec de connexion. Vérifiez vos identifiants.");
+                showAlert("Erreur", "Échec de connexion. Vérifiez vos identifiants.");
             }
         });
-
 
         logoutButton.addActionListener(_ -> {
             if (userService.isLoggedIn()) {
                 userService.logout();
                 showAlert("Déconnexion", "Déconnexion réussie!");
+                // Mettre à jour la visibilité des boutons après déconnexion
+                updateButtonsVisibility(loginButton, logoutButton);
             } else {
-                showAlert("Erreur", "utilisateur non connecté.");
+                showAlert("Erreur", "Utilisateur non connecté.");
             }
         });
-
 
         panel.add(Box.createVerticalStrut(10));
         panel.add(new JLabel("Identifiant"));
