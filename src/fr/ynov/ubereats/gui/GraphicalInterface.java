@@ -2,6 +2,7 @@ package fr.ynov.ubereats.gui;
 
 import fr.ynov.ubereats.domain.order.Order;
 import fr.ynov.ubereats.domain.payment.Payment;
+import fr.ynov.ubereats.domain.payment.PaymentStatus;
 import fr.ynov.ubereats.domain.restaurant.Restaurant;
 import fr.ynov.ubereats.domain.user.Customers;
 import fr.ynov.ubereats.domain.user.Deliver;
@@ -337,6 +338,15 @@ public class GraphicalInterface extends JFrame {
         trackerDialog.setVisible(true);
     }
 
+    private String getMethodLabel(PaymentMethod method) {
+        switch (method) {
+            case CREDIT_CARD: return "Carte de crédit";
+            case PAYPAL: return "PayPal";
+            case TICKET: return "Ticket restaurant";
+            default: return method.name();
+        }
+    }
+
     private void openOrderInterface(Restaurant restaurant) {
         Customers customer = (Customers)userService.getConnectedUser();
 
@@ -408,39 +418,86 @@ public class GraphicalInterface extends JFrame {
                 return;
             }
 
-            String paymentId = java.util.UUID.randomUUID().toString();
-            Payment payment = new Payment(paymentId, order, order.getTotalPrice(), PaymentMethod.CREDIT_CARD);
+            JPanel paymentPanel = new JPanel(new GridLayout(0, 1));
+            paymentPanel.setBorder(BorderFactory.createTitledBorder("Choisissez votre méthode de paiement"));
 
-            boolean paymentSuccess = payment.makePayment();
+            ButtonGroup methodGroup = new ButtonGroup();
+            JRadioButton[] methodButtons = new JRadioButton[PaymentMethod.values().length];
 
-            if (paymentSuccess) {
-                String receipt = payment.genereRecu();
+            int i = 0;
+            for (PaymentMethod method : PaymentMethod.values()) {
+                methodButtons[i] = new JRadioButton(getMethodLabel(method));
+                if (method == PaymentMethod.CREDIT_CARD) {
+                    methodButtons[i].setSelected(true);
+                }
+                methodGroup.add(methodButtons[i]);
+                paymentPanel.add(methodButtons[i]);
+                i++;
+            }
 
-                JTextArea receiptArea = new JTextArea(receipt);
-                receiptArea.setEditable(false);
-                receiptArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+            // Affichage de la boîte de dialogue pour choisir la méthode de paiement
+            int result = JOptionPane.showConfirmDialog(
+                    orderDialog,
+                    paymentPanel,
+                    "Paiement",
+                    JOptionPane.OK_CANCEL_OPTION,
+                    JOptionPane.PLAIN_MESSAGE
+            );
 
-                JScrollPane scrollPane = new JScrollPane(receiptArea);
-                scrollPane.setPreferredSize(new Dimension(400, 300));
+            if (result == JOptionPane.OK_OPTION) {
+                PaymentMethod selectedMethod = PaymentMethod.CREDIT_CARD;
+                for (i = 0; i < methodButtons.length; i++) {
+                    if (methodButtons[i].isSelected()) {
+                        selectedMethod = PaymentMethod.values()[i];
+                        break;
+                    }
+                }
 
                 JOptionPane.showMessageDialog(
                         orderDialog,
-                        scrollPane,
-                        "Reçu de commande",
+                        "Traitement du paiement en cours...",
+                        "Paiement",
                         JOptionPane.INFORMATION_MESSAGE
                 );
 
-                orderService.updateOrderStatus(orderId, OrderStatus.ACCEPTED);
+                Payment payment = paymentService.createPayment(order, selectedMethod);
 
-                startOrderTracking(orderId);
-                showOrderStatusTracker(orderId, this);
+                if (payment.getStatus() == PaymentStatus.ACCEPTED) {
+                    JTextArea receiptArea = new JTextArea(payment.genereRecu());
+                    receiptArea.setEditable(false);
+                    receiptArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
 
-                orderDialog.dispose();
+                    JScrollPane scrollPane = new JScrollPane(receiptArea);
+                    scrollPane.setPreferredSize(new Dimension(400, 300));
+
+                    JOptionPane.showMessageDialog(
+                            orderDialog,
+                            scrollPane,
+                            "Reçu de commande",
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
+
+                    orderService.updateOrderStatus(orderId, OrderStatus.ACCEPTED);
+
+                    startOrderTracking(orderId);
+                    showOrderStatusTracker(orderId, this);
+
+                    orderDialog.dispose();
+                } else {
+                    JOptionPane.showMessageDialog(
+                            orderDialog,
+                            "Le paiement a été refusé. Veuillez réessayer.",
+                            "Échec du paiement",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                }
             } else {
-                JOptionPane.showMessageDialog(orderDialog,
-                        "Échec du paiement. Veuillez réessayer.",
-                        "Erreur de paiement",
-                        JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(
+                        orderDialog,
+                        "Paiement annulé",
+                        "Information",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
             }
         });
 
@@ -504,10 +561,10 @@ public class GraphicalInterface extends JFrame {
 
 
         panel.add(Box.createVerticalStrut(10));
-        panel.add(new JLabel("Username"));
+        panel.add(new JLabel("Identifiant"));
         panel.add(usernameField);
         panel.add(Box.createVerticalStrut(10));
-        panel.add(new JLabel("Password"));
+        panel.add(new JLabel("Mot de passe"));
         panel.add(passwordField);
         panel.add(Box.createVerticalStrut(10));
         panel.add(loginButton);
