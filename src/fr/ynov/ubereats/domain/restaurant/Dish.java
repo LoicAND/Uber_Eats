@@ -2,15 +2,12 @@ package fr.ynov.ubereats.domain.restaurant;
 
 public class Dish {
 
-    private String id;
-    private String name;
-    private String description;
-    private String image;
-    private double price;
-    private boolean available;
+    private final String id;
+    private final String name;
+    private final String description;
+    private final double price;
+    private final boolean available;
     private final Restaurant restaurant;
-    private Dish dish;
-    private double quantity;
 
     public Dish(String id, String name, String description, double price, Restaurant restaurant) {
         this.id = id;
@@ -29,40 +26,21 @@ public class Dish {
         return name;
     }
 
-
-    public String getDescription() {
-        return description;
-    }
-
-    public String getImage() {
-        return image;
-    }
-
     public double getPrice() {
         return price;
     }
 
-    public boolean isAvailable() {
-        return available;
-    }
 
     public Restaurant getRestaurant() {
         return restaurant;
     }
 
-    public Dish getDish() {
-        return dish;
+
+    public String getDescription() {
+        return description;
     }
 
-    public void setDish(Dish dish) {
-        this.dish = dish;
-    }
-
-    public double getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(double quantity) {
-        this.quantity = quantity;
+    public boolean isAvailable() {
+        return available;
     }
 }
