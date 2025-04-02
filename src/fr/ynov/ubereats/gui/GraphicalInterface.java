@@ -67,7 +67,7 @@ public class GraphicalInterface extends JFrame {
         JScrollPane listScrollPane = new JScrollPane(restaurantList);
         panel.add(listScrollPane, BorderLayout.CENTER);
 
-        JButton orderButton = new JButton("Commande");
+        JButton orderButton = new JButton("Commander");
         orderButton.addActionListener(_ -> {
             if (!(userService.getConnectedUser() instanceof Customers)) {
                 showAlert("Connexion requise", "Pour commander, veuillez vous connecter.");
@@ -188,17 +188,26 @@ public class GraphicalInterface extends JFrame {
     }
 
     private void displayOrderDetails(String orderId) {
-
         Order order = orderService.getOrderById(orderId);
 
         if (order != null) {
-            String details = String.format(
-                    "Restaurant: %s\nStatus: %s\nCreation Date: %s",
-                    order.getRestaurant().getName(),
-                    order.getStatus(),
-                    order.getCreationDate()
-            );
-            showAlert("Order Details", details);
+            StringBuilder details = new StringBuilder();
+            details.append("Restaurant: ").append(order.getRestaurant().getName()).append("\n");
+            details.append("Statut: ").append(order.getStatus()).append("\n");
+            details.append("Date de création: ").append(order.getCreationDate()).append("\n\n");
+
+            details.append("Articles commandés:\n");
+            for (fr.ynov.ubereats.domain.order.CartLine line : order.getLines()) {
+                details.append("- ").append(line.getQuantity()).append(" x ")
+                        .append(line.getDish().getName()).append(": ")
+                        .append(line.getTotalPrice()).append("€\n");
+            }
+
+            details.append("\nSous-total: ").append(order.getTotalPrice() - order.getDeliveryFees()).append("€\n");
+            details.append("Frais de livraison: ").append(order.getDeliveryFees()).append("€\n");
+            details.append("Total: ").append(order.getTotalPrice()).append("€");
+
+            showAlert("Détails de la commande", details.toString());
         }
     }
 
@@ -232,7 +241,7 @@ public class GraphicalInterface extends JFrame {
                 new String[]{"Plat", "Quantité", "Prix unitaire", "Total"}, 0);
 
         JTable cartTable = new JTable(cartModel);
-        double totalPrice = 0;
+        double subtotalPrice = 0;
 
         for (fr.ynov.ubereats.domain.order.CartLine line : order.getLines()) {
             cartModel.addRow(new Object[]{
@@ -241,20 +250,36 @@ public class GraphicalInterface extends JFrame {
                     line.getDish().getPrice() + "€",
                     line.getTotalPrice() + "€"
             });
-            totalPrice += line.getTotalPrice();
+            subtotalPrice += line.getTotalPrice();
         }
 
         JScrollPane cartScrollPane = new JScrollPane(cartTable);
         cartPanel.add(cartScrollPane, BorderLayout.CENTER);
 
-        JLabel totalLabel = new JLabel("Total: " + totalPrice + "€");
-        totalLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-        cartPanel.add(totalLabel, BorderLayout.SOUTH);
+        JPanel summaryPanel = new JPanel(new GridLayout(3, 2));
+        JLabel subtotalLabel = new JLabel("Sous-total: ");
+        JLabel subtotalValueLabel = new JLabel(subtotalPrice + "€");
+        JLabel deliveryLabel = new JLabel("Frais de livraison: ");
+        JLabel deliveryValueLabel = new JLabel(order.getDeliveryFees() + "€");
+        JLabel totalLabel = new JLabel("Total: ");
+        JLabel totalValueLabel = new JLabel(order.getTotalPrice() + "€");
 
+        subtotalValueLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        deliveryValueLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        totalValueLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        totalValueLabel.setFont(totalValueLabel.getFont().deriveFont(Font.BOLD));
+
+        summaryPanel.add(subtotalLabel);
+        summaryPanel.add(subtotalValueLabel);
+        summaryPanel.add(deliveryLabel);
+        summaryPanel.add(deliveryValueLabel);
+        summaryPanel.add(totalLabel);
+        summaryPanel.add(totalValueLabel);
+
+        cartPanel.add(summaryPanel, BorderLayout.SOUTH);
         orderDialog.getContentPane().add(cartPanel, BorderLayout.EAST);
 
         orderDialog.setSize(700, 400);
-
         orderDialog.revalidate();
         orderDialog.repaint();
     }
@@ -478,7 +503,7 @@ public class GraphicalInterface extends JFrame {
                 Payment payment = paymentService.createPayment(order, selectedMethod);
 
                 if (payment.getStatus() == PaymentStatus.ACCEPTED) {
-                    JTextArea receiptArea = new JTextArea(payment.genereRecu());
+                    JTextArea receiptArea = new JTextArea(payment.receiptOrder());
                     receiptArea.setEditable(false);
                     receiptArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
 
