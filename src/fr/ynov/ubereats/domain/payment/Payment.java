@@ -5,12 +5,12 @@ import fr.ynov.ubereats.domain.order.Order;
 import java.util.Date;
 
 public class Payment {
-    private String id;
-    private double price;
-    private Date date;
-    private PaymentMethod methode;
+    private final String id;
+    private final double price;
+    private final Date date;
+    private final PaymentMethod methode;
     private PaymentStatus status;
-    private Order order;
+    private final Order order;
 
     public Payment(String id, Order order, double price, PaymentMethod methode) {
         this.id = id;
@@ -21,20 +21,10 @@ public class Payment {
         this.status = PaymentStatus.ON_HOLD;
     }
 
-    public boolean makePayment() {
+    public void makePayment() {
         if (this.status == PaymentStatus.ON_HOLD) {
             this.status = PaymentStatus.ACCEPTED;
-            return true;
         }
-        return false;
-    }
-
-    public boolean cancelPayment() {
-        if (this.status == PaymentStatus.ACCEPTED || this.status == PaymentStatus.ON_HOLD) {
-            this.status = PaymentStatus.REFUNDED;
-            return true;
-        }
-        return false;
     }
 
     public String genereRecu(){
