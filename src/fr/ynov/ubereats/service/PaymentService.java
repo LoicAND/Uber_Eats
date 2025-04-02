@@ -44,6 +44,33 @@ public class PaymentService {
         return paymentsByMethod;
     }
 
+    public Payment createPayment(Order order, PaymentMethod method) {
+        String paymentId = "PAY-" + System.currentTimeMillis();
+        Payment payment = new Payment(paymentId, order, order.getTotalPrice(), method);
+
+        boolean success = processPaymentWithMethod(method);
+        if (success) {
+            payment.makePayment();
+        } else {
+            payment.updateStatus(PaymentStatus.REFUSED);
+        }
+
+        savePayment(payment);
+        return payment;
+    }
+
+    private boolean processPaymentWithMethod(PaymentMethod method) {
+
+        try {
+
+            Thread.sleep(1000);
+            return true;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
+    }
+
     public List<Payment> listPaymentsByStatus(PaymentStatus status) {
         List<Payment> paymentsByStatus = new ArrayList<>();
         for (Payment payment : payments) {
