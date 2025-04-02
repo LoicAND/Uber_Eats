@@ -4,34 +4,21 @@ import fr.ynov.ubereats.domain.order.Order;
 import fr.ynov.ubereats.domain.order.OrderStatus;
 import fr.ynov.ubereats.domain.user.Deliver;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class DeliveryService {
-    private UserService userService;
-    private OrderService orderService;
-    private Map<String, Deliver> orderAssignments = new HashMap<>();
+    private final UserService userService;
+    private final OrderService orderService;
+    private final Map<String, Deliver> orderAssignments = new HashMap<>();
 
     public DeliveryService(OrderService orderService, UserService userService) {
         this.orderService = orderService;
         this.userService = userService;
     }
 
-    public boolean assignDelivererToOrder(Deliver deliverer, String orderId) {
-        Order order = orderService.getOrderById(orderId);
-        if (order == null || order.getStatus() != OrderStatus.IN_PREPARATION) {
-            return false;
-        }
-
-        boolean accepted = deliverer.accepteDelivery(order);
-        if (accepted) {
-            orderAssignments.put(orderId, deliverer);
-        }
-        return accepted;
-    }
     public List<Deliver> getAvailableDeliverers() {
         List<Deliver> allDeliverers = userService.getAllDeliverers();
         return allDeliverers.stream()
@@ -67,7 +54,7 @@ public class DeliveryService {
             return null;
         }
 
-        Deliver selectedDeliverer = availableDeliverers.get(0);
+        Deliver selectedDeliverer = availableDeliverers.getFirst();
         boolean assigned = assignDelivererToOrder(orderId, selectedDeliverer);
 
         return assigned ? selectedDeliverer : null;
