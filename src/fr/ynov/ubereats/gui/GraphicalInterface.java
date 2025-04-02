@@ -99,6 +99,7 @@ public class GraphicalInterface extends JFrame {
         JPanel buttonsPanel = new JPanel();
         JButton detailsButton = new JButton("Voir Details");
         JButton refreshButton = new JButton("Rafraichir");
+        JButton cancelButton = new JButton("Annuler commande");
 
         detailsButton.addActionListener(_ -> {
             if (!userService.isLoggedIn()) {
@@ -120,8 +121,29 @@ public class GraphicalInterface extends JFrame {
 
         refreshButton.addActionListener(_ -> refreshOrders(tableModel));
 
+        cancelButton.addActionListener(_ -> {
+            if (!userService.isLoggedIn()) {
+                showAlert("Connexion requise", "Veuillez vous connecter pour annuler une commande.");
+                return;
+            }
+
+            if (!(userService.getConnectedUser() instanceof Customers)) {
+                showAlert("Accès refusé", "Réservé aux clients.");
+                return;
+            }
+
+            int selectedRow = ordersTable.getSelectedRow();
+            if (selectedRow != -1) {
+                String orderId = tableModel.getValueAt(selectedRow, 0).toString();
+                cancelOrder(orderId, tableModel);
+            } else {
+                showAlert("Sélection", "Veuillez sélectionner une commande à annuler.");
+            }
+        });
+
         buttonsPanel.add(detailsButton);
         buttonsPanel.add(refreshButton);
+        buttonsPanel.add(cancelButton);
         panel.add(buttonsPanel, BorderLayout.SOUTH);
 
         return panel;
@@ -309,7 +331,7 @@ public class GraphicalInterface extends JFrame {
                         }
                     }
 
-                    switch(currentOrder.getStatus()) {
+                    switch (currentOrder.getStatus()) {
                         case ACCEPTED:
                             progressBar.setValue(20);
                             break;
@@ -342,7 +364,7 @@ public class GraphicalInterface extends JFrame {
     }
 
     private void openOrderInterface(Restaurant restaurant) {
-        Customers customer = (Customers)userService.getConnectedUser();
+        Customers customer = (Customers) userService.getConnectedUser();
 
         String orderId = java.util.UUID.randomUUID().toString();
         Order order = orderService.createOrder(orderId, customer, restaurant);
@@ -429,7 +451,6 @@ public class GraphicalInterface extends JFrame {
                 i++;
             }
 
-            // Affichage de la boîte de dialogue pour choisir la méthode de paiement
             int result = JOptionPane.showConfirmDialog(
                     orderDialog,
                     paymentPanel,
@@ -566,5 +587,37 @@ public class GraphicalInterface extends JFrame {
 
         return panel;
     }
-}
 
+    private void cancelOrder(String orderId, DefaultTableModel tableModel) {
+        Order order = orderService.getOrderById(orderId);
+
+        if (order == null) {
+            showAlert("Erreur", "Commande introuvable.");
+            return;
+        }
+
+        if (order.getStatus() == OrderStatus.DELIVERED || order.getStatus() == OrderStatus.CANCELED) {
+            showAlert("Impossible d'annuler", STR."Cette commande ne peut plus être annulée car elle est déjà \{order.getStatus() == OrderStatus.DELIVERED ? "livrée." : "annulée."}");
+            return;
+        }
+
+        int response = JOptionPane.showConfirmDialog(
+                this,
+                "Êtes-vous sûr de vouloir annuler cette commande ?",
+                "Confirmation d'annulation",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (response == JOptionPane.YES_OPTION) {
+            if (orderService.cancelOrder(orderId)) {
+                showAlert("Succès", "Votre commande a été annulée avec succès.");
+
+                tableModel.setRowCount(0);
+                refreshOrders(tableModel);
+            } else {
+                showAlert("Erreur", "Impossible d'annuler cette commande.");
+            }
+        }
+    }
+}
