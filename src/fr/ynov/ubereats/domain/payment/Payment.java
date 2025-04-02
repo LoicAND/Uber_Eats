@@ -19,6 +19,7 @@ public class Payment {
     private final PaymentMethod method;
     private PaymentStatus status;
     private final Order order;
+    private double tipAmount = 0.0;
 
     /**
      * Constructor to create a new Payment with a unique ID,
@@ -64,15 +65,24 @@ public class Payment {
 
         double subtotal = price - order.getDeliveryFees();
 
-        return "Reçu de paiement\n" +
-                "ID: " + id + "\n" +
-                "Date: " + date + "\n" +
-                "Restaurant: " + order.getRestaurant().getName() + "\n\n" +
-                "Sous-total: " + String.format("%.2f€", subtotal) + "\n" +
-                "Frais de livraison: " + String.format("%.2f€", order.getDeliveryFees()) + "\n" +
-                "Montant total: " + String.format("%.2f€", price) + "\n\n" +
-                "Méthode de paiement: " + methodeName + "\n" +
-                "Statut: " + (status == PaymentStatus.ACCEPTED ? "Payé" : status);
+        StringBuilder receipt = new StringBuilder();
+        receipt.append("Reçu de paiement\n");
+        receipt.append("ID: ").append(id).append("\n");
+        receipt.append("Date: ").append(date).append("\n");
+        receipt.append("Restaurant: ").append(order.getRestaurant().getName()).append("\n\n");
+        receipt.append("Sous-total: ").append(String.format("%.2f€", subtotal)).append("\n");
+        receipt.append("Frais de livraison: ").append(String.format("%.2f€", order.getDeliveryFees())).append("\n");
+        receipt.append("Montant total: ").append(String.format("%.2f€", price)).append("\n");
+
+        if (tipAmount > 0) {
+            receipt.append("Pourboire: ").append(String.format("%.2f€", tipAmount)).append("\n");
+            receipt.append("Total avec pourboire: ").append(String.format("%.2f€", price + tipAmount)).append("\n");
+        }
+
+        receipt.append("\nMéthode de paiement: ").append(methodeName).append("\n");
+        receipt.append("Statut: ").append(status == PaymentStatus.ACCEPTED ? "Payé" : status);
+
+        return receipt.toString();
     }
 
     /**
@@ -118,5 +128,19 @@ public class Payment {
      */
     public void updateStatus(PaymentStatus newStatus) {
         this.status = newStatus;
+    }
+
+    public void addTip(double amount){
+        if (amount > 0 && this.status == PaymentStatus.ACCEPTED) {
+            this.tipAmount = amount;
+        }
+    }
+
+    public double getTipAmount() {
+        return tipAmount;
+    }
+
+    public double getTotalAmount() {
+        return price + tipAmount;
     }
 }
