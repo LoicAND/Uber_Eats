@@ -17,13 +17,47 @@ import java.util.TimerTask;
 import java.util.Vector;
 import java.util.List;
 
+/**
+ * Main graphical user interface for the Uber Eats application.
+ * This class handles the display and interaction with all UI components,
+ * providing access to all system functionalities through a tabbed interface.
+ * <p>
+ * The interface consists of three main panels:
+ * - Restaurants panel: Displays available restaurants and allows placing orders
+ * - Orders panel: Shows the user's orders and their status
+ * - Connection panel: Handles user login and logout
+ * <p>
+ * The class coordinates with various services to perform business operations
+ * like authentication, ordering, payment processing, and delivery tracking.
+ *
+ * @author Loïc ANDRIANARIVONY
+ */
+
 public class GraphicalInterface extends JFrame {
+
+    /**
+     * Service for user authentication and profile management.
+     * Service for restaurant and menu management.
+     * Service for order creation and tracking.
+     * Service for payment processing.
+     * Service for delivery assignment and coordination.
+     */
     private final UserService userService;
     private final RestaurantService restaurantService;
     private final OrderService orderService;
     private final PaymentService paymentService;
     private final DeliveryService deliveryService;
 
+    /**
+     * Constructs a new GraphicalInterface with all required services.
+     * Initializes the main window and sets up all UI components.
+     *
+     * @param userService Service for user authentication and management
+     * @param restaurantService Service for restaurant data
+     * @param orderService Service for order management
+     * @param paymentService Service for payment processing
+     * @param deliveryService Service for delivery coordination
+     */
     public GraphicalInterface(
             UserService userService,
             RestaurantService restaurantService,
@@ -53,6 +87,12 @@ public class GraphicalInterface extends JFrame {
         setContentPane(mainTabbedPane);
     }
 
+    /**
+     * Creates and configures the restaurants panel.
+     * This panel displays a list of available restaurants and allows users to place orders.
+     *
+     * @return A configured JPanel for the restaurants tab
+     */
     private JPanel createRestaurantsPanel() {
         JPanel panel = new JPanel(new BorderLayout());
 
@@ -86,6 +126,12 @@ public class GraphicalInterface extends JFrame {
         return panel;
     }
 
+    /**
+     * Creates and configures the orders panel.
+     * This panel shows the user's current and past orders with their status.
+     *
+     * @return A configured JPanel for the orders tab
+     */
     private JPanel createOrdersPanel() {
         JPanel panel = new JPanel(new BorderLayout());
 
@@ -149,6 +195,12 @@ public class GraphicalInterface extends JFrame {
         return panel;
     }
 
+    /**
+     * Refreshes the orders table with current data from the service.
+     * Uses a SwingWorker to perform the operation asynchronously.
+     *
+     * @param tableModel The table model to update with order data
+     */
     private void refreshOrders(DefaultTableModel tableModel) {
         new SwingWorker<Void, Order>() {
             @Override
@@ -187,6 +239,12 @@ public class GraphicalInterface extends JFrame {
         }.execute();
     }
 
+    /**
+     * Displays detailed information about a specific order.
+     * Shows restaurant information, order items, quantities, prices and status.
+     *
+     * @param orderId The ID of the order to display
+     */
     private void displayOrderDetails(String orderId) {
         Order order = orderService.getOrderById(orderId);
 
@@ -211,6 +269,12 @@ public class GraphicalInterface extends JFrame {
         }
     }
 
+    /**
+     * Retrieves a Restaurant object based on the selected list item.
+     *
+     * @param restaurantSelection The selected restaurant string from the list
+     * @return The corresponding Restaurant object, or null if none was selected
+     */
     private Restaurant getSelectedRestaurant(String restaurantSelection) {
         if (restaurantSelection == null) {
             showAlert("Selection", "Veuillez sélectionner un restaurant.");
@@ -225,6 +289,13 @@ public class GraphicalInterface extends JFrame {
                 .orElse(null);
     }
 
+    /**
+     * Updates the cart display in the order dialog.
+     * Shows the current items, quantities, prices, and totals.
+     *
+     * @param order The order containing cart items
+     * @param orderDialog The dialog to update
+     */
     private void updateCartDisplay(Order order, JDialog orderDialog) {
         Component[] components = orderDialog.getContentPane().getComponents();
         for (Component component : components) {
@@ -284,6 +355,12 @@ public class GraphicalInterface extends JFrame {
         orderDialog.repaint();
     }
 
+    /**
+     * Starts the automated order tracking process.
+     * Uses timers to simulate the progression of an order through different stages.
+     *
+     * @param orderId The ID of the order to track
+     */
     public void startOrderTracking(String orderId) {
         Order order = orderService.getOrderById(orderId);
 
@@ -324,6 +401,13 @@ public class GraphicalInterface extends JFrame {
         }, completeDelay);
     }
 
+    /**
+     * Displays a dialog showing the real-time status of an order.
+     * Updates automatically as the order progresses through different stages.
+     *
+     * @param orderId The ID of the order to display
+     * @param parentFrame The parent frame for the dialog
+     */
     public void showOrderStatusTracker(String orderId, JFrame parentFrame) {
         JDialog trackerDialog = new JDialog(parentFrame, "Suivi de commande", false);
         trackerDialog.setLayout(new BorderLayout());
@@ -380,6 +464,12 @@ public class GraphicalInterface extends JFrame {
         trackerDialog.setVisible(true);
     }
 
+    /**
+     * Converts a PaymentMethod enum to a user-friendly display string.
+     *
+     * @param method The PaymentMethod to convert
+     * @return A localized string representing the payment method
+     */
     private String getMethodLabel(PaymentMethod method) {
         return switch (method) {
             case CREDIT_CARD -> "Carte de crédit";
@@ -388,6 +478,12 @@ public class GraphicalInterface extends JFrame {
         };
     }
 
+    /**
+     * Opens the order interface for a specific restaurant.
+     * Allows users to browse the menu, add items to cart, and complete the order.
+     *
+     * @param restaurant The restaurant from which to order
+     */
     private void openOrderInterface(Restaurant restaurant) {
         Customers customer = (Customers) userService.getConnectedUser();
 
@@ -551,16 +647,34 @@ public class GraphicalInterface extends JFrame {
         orderDialog.setVisible(true);
     }
 
+    /**
+     * Displays an information alert dialog with the specified title and message.
+     *
+     * @param title The title of the alert
+     * @param message The message to display
+     */
     private void showAlert(String title, String message) {
         JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE);
     }
 
+    /**
+     * Updates the visibility of login/logout buttons based on user authentication status.
+     *
+     * @param loginButton The login button to update
+     * @param logoutButton The logout button to update
+     */
     private void updateButtonsVisibility(JButton loginButton, JButton logoutButton) {
         boolean isLoggedIn = userService.isLoggedIn();
         loginButton.setVisible(!isLoggedIn);
         logoutButton.setVisible(isLoggedIn);
     }
 
+    /**
+     * Creates and configures the user connection panel.
+     * Provides fields for email and password entry, and buttons for login/logout.
+     *
+     * @return A configured JPanel for the connection tab
+     */
     private JPanel createConnectionPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -622,6 +736,13 @@ public class GraphicalInterface extends JFrame {
         return panel;
     }
 
+    /**
+     * Cancels an order after confirmation.
+     * Only allows cancellation for orders that are not delivered or already canceled.
+     *
+     * @param orderId The ID of the order to cancel
+     * @param tableModel The table model to update after cancellation
+     */
     private void cancelOrder(String orderId, DefaultTableModel tableModel) {
         Order order = orderService.getOrderById(orderId);
 
